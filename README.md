@@ -15,6 +15,32 @@ Welcome to myapp-java!!
      docker build . -t myapp-java
      docker run -p 8080:8080 -it myapp-java
 
+## Gatling load test (Java)
+
+A basic Gatling Java simulation is included at `src/gatling/java/perf/BasicSimulation.java`.
+
+How to run:
+
+1. Start the app (in one terminal):
+
+   ```bash
+   ./gradlew joobyRun
+   ```
+
+2. In another terminal, run Gatling:
+
+   ```bash
+   ./gradlew gatlingRun
+   ```
+
+   You can override the target URL if needed:
+
+   ```bash
+   ./gradlew gatlingRun -DtargetBaseUrl=http://localhost:8080
+   ```
+
+Reports will be generated under `build/reports/gatling/`.
+
 ## Logging in Jooby (how it is set up here)
 
 - Jooby uses SLF4J for logging. In this project the backend is Logback via the dependency `io.jooby:jooby-logback` (see build.gradle).

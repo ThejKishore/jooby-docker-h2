@@ -11,6 +11,7 @@ plugins {
   id "io.spring.dependency-management" version "1.1.0"
   id "com.google.osdetector" version "1.7.3"
   id "com.gradleup.shadow" version "8.3.7"
+  id "io.gatling.gradle" version "3.10.5"
 }
 
 group "app"
@@ -41,7 +42,6 @@ dependencies {
   implementation 'io.jooby:jooby-metrics'
   implementation 'io.jooby:jooby-jackson'
 
-
   implementation(platform("org.jdbi:jdbi3-bom:3.49.5"))
   implementation("org.jdbi:jdbi3-core")
   runtimeOnly("com.h2database:h2:2.2.224")
@@ -54,6 +54,7 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-engine:5.13.4"
   testImplementation "io.jooby:jooby-test"
   testImplementation "com.squareup.okhttp3:okhttp-jvm:5.1.0"
+
 }
 
 test {
@@ -77,4 +78,9 @@ joobyRun {
   restartExtensions = ["conf", "properties", "class"]
   compileExtensions = ["java"]
   port = 8080
+}
+
+gatling {
+  logLevel = 'INFO'
+  // Default src dir is src/gatling, leave defaults
 }
