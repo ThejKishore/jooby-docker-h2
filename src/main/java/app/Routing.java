@@ -112,10 +112,12 @@ public class Routing extends Jooby {
     private User createUser(Context ctx){
         return jdbi.withHandle(handle -> {
             User user = ctx.body(User.class);
-            handle.createUpdate("INSERT INTO users(name) VALUES (:name)")
-                    .bind("name", user.name())
-                    .execute();
-            return user;
+            var update = handle.createUpdate("INSERT INTO users(name) VALUES (:name)")
+                    .bind("name", user.name());
+            long id = update.executeAndReturnGeneratedKeys("id")
+                    .mapTo(Long.class)
+                    .one();
+            return new User(id, user.name());
         });
     }
 

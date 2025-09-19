@@ -3,15 +3,19 @@ package perf;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import app.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BasicSimulation extends Simulation {
 
 
+    private static final Logger log = LoggerFactory.getLogger(BasicSimulation.class);
     ObjectMapper objectMapper = new ObjectMapper();
 
     HttpProtocolBuilder httpProtocol = http
@@ -33,35 +37,57 @@ public class BasicSimulation extends Simulation {
             )
             .pause(1)
             .exec(s -> {
+                log.info("==========> Setting up user data");
                 Session ns = null;
                 try {
-                    ns = s.set("userData", objectMapper.writeValueAsString(new User(null, "Test")));
-                    System.out.println(ns.getString("userData"));
+                    var data = objectMapper.writeValueAsString(new User(-1, "Test"));
+                    log.info("-------json---- {}",data);
+                    ns = s.set("userData", data);
+                    log.info("session data {}",ns.getString("userData"));
+                    return ns;
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
-                return ns;
             })
             .exec(
                     http("POST /users")
                             .post("/users")
                             .body(StringBody("${userData}")).asJson()
+                            .check(bodyString().saveAs("user"))
                             .check(status().in(200,201))
-
-
+                            .check(jsonPath("$.id").notNull())
+            )
+            .exec(session -> {
+                try {
+                    log.info("response recived {}",session.getString("user"));
+                    User user = objectMapper.readValue((String) session.get("user"), User.class);
+                    User updatedUser = new User(user.id(), "Updated"+" "+user.name());
+                    session = session.set("user_id", user.id());
+                    session = session.set("userData", objectMapper.writeValueAsString(updatedUser));
+                }catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+                return session;
+            })
+            .pause(1)
+            .exec(
+                    http("PUT /users/id")
+                            .put("/users/${user_id}")
+                            .body(StringBody("${userData}")).asJson()
+                            .check(status().in(200,201))
+                            .check(jsonPath("$.name").notNull())
             );
 
     public BasicSimulation() throws JsonProcessingException {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         setUp(
                 scn.injectOpen(
+//                        atOnceUsers(1)
                         rampUsers(10).during(10),
-                        constantUsersPerSec(5).during(10)
+                        constantUsersPerSec(10).during(10)
 
                 )
         ).protocols(httpProtocol);
     }
 
-    record User(Long id, String name) {
-    }
 }
