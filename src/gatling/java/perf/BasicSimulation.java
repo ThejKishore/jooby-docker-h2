@@ -37,13 +37,13 @@ public class BasicSimulation extends Simulation {
             )
             .pause(1)
             .exec(s -> {
-                log.info("==========> Setting up user data");
+//                log.info("==========> Setting up user data");
                 Session ns = null;
                 try {
                     var data = objectMapper.writeValueAsString(new User(-1, "Test"));
-                    log.info("-------json---- {}",data);
+//                    log.info("-------json---- {}",data);
                     ns = s.set("userData", data);
-                    log.info("session data {}",ns.getString("userData"));
+//                    log.info("session data {}",ns.getString("userData"));
                     return ns;
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
@@ -59,7 +59,7 @@ public class BasicSimulation extends Simulation {
             )
             .exec(session -> {
                 try {
-                    log.info("response recived {}",session.getString("user"));
+//                    log.info("response recived {}",session.getString("user"));
                     User user = objectMapper.readValue((String) session.get("user"), User.class);
                     User updatedUser = new User(user.id(), "Updated"+" "+user.name());
                     session = session.set("user_id", user.id());
@@ -83,8 +83,8 @@ public class BasicSimulation extends Simulation {
         setUp(
                 scn.injectOpen(
 //                        atOnceUsers(1)
-                        rampUsers(10).during(10),
-                        constantUsersPerSec(10).during(10)
+                        rampUsers(20).during(10),
+                        constantUsersPerSec(20).during(10)
 
                 )
         ).protocols(httpProtocol);
